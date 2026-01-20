@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Рассылка #{{ mailing.id }}{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="mb-0">Рассылка #{{ mailing.id }}</h2>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Основная информация</h5>
+                <p><strong>Статус:</strong>
+                    <span class="badge bg-{% if mailing.status == 'created' %}secondary{% elif mailing.status == 'started' %}success{% else %}dark{% endif %}">
+                        {{ mailing.get_status_display }}
+                    </span>
+                </p>
+                <p><strong>Время начала:</strong> {{ mailing.start_time|date:"d.m.Y H:i" }}</p>
+                <p><strong>Время окончания:</strong> {{ mailing.end_time|date:"d.m.Y H:i" }}</p>
+                <p><strong>Сообщение:</strong> {{ mailing.message.subject }}</p>
+                <p><strong>Количество клиентов:</strong> {{ mailing.clients.count }}</p>
+            </div>
+            <div class="col-md-6">
+                <h5>Статистика</h5>
+                <p><strong>Успешных отправок:</strong> {{ success_count }}</p>
+                <p><strong>Неудачных отправок:</strong> {{ failure_count }}</p>
+                <p><strong>Всего попыток:</strong> {{ attempts.count }}</p>
+
+                {% if mailing.status == 'started' %}
+                <a href="{% url 'mailings:mailing_send' mailing.pk %}" class="btn btn-success mt-3">Отправить сейчас</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <h5>Содержание сообщения</h5>
+            <div class="card">
+                <div class="card-body">
+                    <h6>{{ mailing.message.subject }}</h6>
+                    <p>{{ mailing.message.body }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">История отправок</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Время</th>
+                        <th>Клиент</th>
+                        <th>Статус</th>
+                        <th>Ответ сервера</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attempt in attempts %}
+                    <tr>
+                        <td>{{ attempt.attempt_time|date:"d.m.Y H:i" }}</td>
+                        <td>{{ attempt.client.email }}</td>
+                        <td>
+                            <span class="badge bg-{% if attempt.status == 'success' %}success{% else %}danger{% endif %}">
+                                {{ attempt.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ attempt.server_response|truncatechars:50 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">Попыток отправки нет</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

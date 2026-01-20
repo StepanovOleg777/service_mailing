@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - Сервис рассылок{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">Сервис управления рассылками</h1>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-header">Всего рассылок</div>
+                    <div class="card-body">
+                        <h2 class="card-title">{{ total_mailings }}</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-header">Активные рассылки</div>
+                    <div class="card-body">
+                        <h2 class="card-title">{{ active_mailings }}</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-header">Уникальных клиентов</div>
+                    <div class="card-body">
+                        <h2 class="card-title">{{ unique_clients }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if not user.is_authenticated %}
+            <div class="jumbotron mt-5">
+                <h2>Добро пожаловать!</h2>
+                <p class="lead">Для работы с сервисом необходимо войти в систему или зарегистрироваться.</p>
+                <a href="{% url 'users:login' %}" class="btn btn-primary btn-lg">Войти</a>
+                <a href="{% url 'users:register' %}" class="btn btn-success btn-lg">Зарегистрироваться</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
