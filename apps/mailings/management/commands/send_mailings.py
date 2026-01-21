@@ -1,6 +1,7 @@
 """
 Кастомная команда для отправки рассылок.
 """
+
 import logging
 from datetime import datetime
 from django.core.management.base import BaseCommand
@@ -13,35 +14,36 @@ logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     """Команда для отправки запланированных рассылок."""
-    help = 'Send scheduled mailings'
+
+    help = "Send scheduled mailings"
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--mailing-id',
+            "--mailing-id",
             type=int,
-            help='ID конкретной рассылки для отправки',
+            help="ID конкретной рассылки для отправки",
         )
         parser.add_argument(
-            '--force',
-            action='store_true',
-            help='Принудительная отправка вне временного интервала',
+            "--force",
+            action="store_true",
+            help="Принудительная отправка вне временного интервала",
         )
 
     def handle(self, *args, **options):
-        mailing_id = options.get('mailing_id')
-        force = options.get('force')
+        mailing_id = options.get("mailing_id")
+        force = options.get("force")
 
         if mailing_id:
             mailings = Mailing.objects.filter(id=mailing_id)
         else:
             # Получаем все активные рассылки
-            mailings = Mailing.objects.filter(status='started')
+            mailings = Mailing.objects.filter(status="started")
 
         total_sent = 0
         total_failed = 0
 
         for mailing in mailings:
-            self.stdout.write(f'Обработка рассылки #{mailing.id}')
+            self.stdout.write(f"Обработка рассылки #{mailing.id}")
 
             # Обновляем статус
             mailing.update_status()
@@ -49,8 +51,8 @@ class Command(BaseCommand):
             # Проверяем возможность отправки
             if not mailing.can_send() and not force:
                 self.stdout.write(
-                    f'  Пропуск: вне временного интервала '
-                    f'({mailing.start_time} - {mailing.end_time})'
+                    f"  Пропуск: вне временного интервала "
+                    f"({mailing.start_time} - {mailing.end_time})"
                 )
                 continue
 
@@ -60,8 +62,8 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f'Отправка завершена. '
-                f'Успешно: {total_sent}, Неудачно: {total_failed}'
+                f"Отправка завершена. "
+                f"Успешно: {total_sent}, Неудачно: {total_failed}"
             )
         )
 
@@ -72,9 +74,8 @@ class Command(BaseCommand):
 
         for client in mailing.clients.all():
             try:
-                # Проверяем, не отправляли ли уже этому клиенту
                 if mailing.attempts.filter(client=client).exists():
-                    logger.info(f'  Клиенту {client.email} уже отправляли')
+                    logger.info(f"  Клиенту {client.email} уже отправляли")
                     continue
 
                 # Отправляем письмо
@@ -90,11 +91,11 @@ class Command(BaseCommand):
                 MailingAttempt.objects.create(
                     mailing=mailing,
                     client=client,
-                    status='success',
-                    server_response='Email sent successfully via command'
+                    status="success",
+                    server_response="Email sent successfully via command",
                 )
                 sent += 1
-                self.stdout.write(f'  ✓ Отправлено клиенту: {client.email}')
+                self.stdout.write(f"  ✓ Отправлено клиенту: {client.email}")
 
             except Exception as e:
                 # Логируем ошибку
@@ -102,11 +103,11 @@ class Command(BaseCommand):
                 MailingAttempt.objects.create(
                     mailing=mailing,
                     client=client,
-                    status='failure',
-                    server_response=error_msg
+                    status="failure",
+                    server_response=error_msg,
                 )
                 failed += 1
-                self.stdout.write(f'  ✗ Ошибка для {client.email}: {error_msg}')
-                logger.error(f'Ошибка отправки: {error_msg}')
+                self.stdout.write(f"  ✗ Ошибка для {client.email}: {error_msg}")
+                logger.error(f"Ошибка отправки: {error_msg}")
 
         return sent, failed

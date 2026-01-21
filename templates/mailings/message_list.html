@@ -8,6 +8,7 @@
     <a href="{% url 'mailings:message_create' %}" class="btn btn-primary">Добавить сообщение</a>
 </div>
 
+{% if messages %}
 <div class="table-responsive">
     <table class="table table-hover">
         <thead>
@@ -27,12 +28,13 @@
                     <a href="{% url 'mailings:message_delete' message.pk %}" class="btn btn-sm btn-outline-danger">Удалить</a>
                 </td>
             </tr>
-            {% empty %}
-            <tr>
-                <td colspan="3" class="text-center">Сообщения не найдены</td>
-            </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+{% else %}
+<div class="alert alert-info">
+    Сообщения не найдены. <a href="{% url 'mailings:message_create' %}">Создайте первое сообщение</a>.
+</div>
+{% endif %}
 {% endblock %}
